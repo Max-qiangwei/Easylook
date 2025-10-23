@@ -1,3 +1,5 @@
+[English](./README_en.md) | **简体中文**
+
 # 图像颜色空间分析器
 
 一个基于Python的图像颜色空间分析工具，提供2x2四个独立的分析窗口，可以同时分析多张图片的颜色分布。
@@ -55,7 +57,7 @@ pip install Pillow numpy matplotlib
 ### 启动程序
 
 ```bash
-python image_color_analyzer.py
+python Easy_Look.py
 ```
 
 ### 操作流程
@@ -94,14 +96,18 @@ python image_color_analyzer.py
 
 ```
 .
-├── image_color_analyzer.py    # 主程序入口
+├── Easy_Look.py               # 主程序入口
 ├── requirements.txt           # 依赖包列表
-├── README.md                  # 本文档
+├── README.md                  # 中文文档
+├── README_en.md              # 英文文档
 └── modules/                   # 功能模块目录
     ├── __init__.py           # 包初始化文件
     ├── image_processor.py    # 图像处理核心模块
     ├── image_block.py        # 单个图片块UI组件
-    └── main_window.py        # 主窗口管理模块
+    ├── main_window.py        # 主窗口管理模块
+    ├── comparison_mode.py    # 对比模式模块
+    ├── color_picker.py       # 颜色选择器模块
+    └── language_manager.py   # 多语言管理模块
 ```
 
 ## 模块说明
@@ -126,6 +132,24 @@ python image_color_analyzer.py
   - 菜单栏功能
   - 批量操作控制
   - 状态栏显示
+
+### comparison_mode.py
+- `ComparisonMode`: 对比模式功能
+  - 多图片同时对比
+  - 不同颜色数据集显示
+  - 图例管理
+
+### color_picker.py
+- `ColorPicker`: 颜色选择器
+  - 交互式颜色选取
+  - RGB值显示
+  - 颜色空间转换
+
+### language_manager.py
+- `LanguageManager`: 多语言支持
+  - 中英文界面切换
+  - 界面文本管理
+  - 语言配置保存
 
 ## 颜色空间说明
 
@@ -165,15 +189,7 @@ A: 检查坐标轴范围设置，点击"自动范围"按钮。
 **Q: 如何保存分析结果？**
 A: 点击每个块下方的"保存图表"按钮，可以将统计图保存为PNG、PDF、SVG或EPS格式。
 
-## 许可证
-
-MIT License
 
 ## 作者
 
-AI Assistant
-
-## 版本历史
-
-- v1.1.0 - 2024：添加对比模式，支持单图多数据集对比
-- v1.0.0 - 2024：初始版本，支持2x2多块分析
+Max
