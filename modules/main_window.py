@@ -42,8 +42,19 @@ class MainWindow:
         # 先创建底部状态栏
         self.create_status_bar()
         
+        # 检查屏幕大小，决定是否需要滚动条
+        self.check_screen_size()
+        
         # 然后初始化为多块模式
         self.show_multi_block_mode()
+        
+    def check_screen_size(self):
+        """检查屏幕大小并调整布局"""
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        
+        # 对于小屏幕（高度小于768或宽度小于1366），启用滚动支持
+        self.use_scrollbar = screen_height < 768 or screen_width < 1366
         
     def show_multi_block_mode(self):
         """显示多块模式（2x2）"""
@@ -53,7 +64,27 @@ class MainWindow:
         
         # 如果多块模式框架不存在，创建它
         if not self.multi_block_frame:
-            self.multi_block_frame = ttk.Frame(self.main_container)
+            if self.use_scrollbar:
+                # 创建滚动画布和滚动条
+                self.canvas = tk.Canvas(self.main_container)
+                self.scrollbar_v = ttk.Scrollbar(self.main_container, orient="vertical", command=self.canvas.yview)
+                self.scrollbar_h = ttk.Scrollbar(self.main_container, orient="horizontal", command=self.canvas.xview)
+                self.scrollable_frame = ttk.Frame(self.canvas)
+                
+                self.scrollable_frame.bind(
+                    "<Configure>",
+                    lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+                )
+                
+                self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+                self.canvas.configure(yscrollcommand=self.scrollbar_v.set, xscrollcommand=self.scrollbar_h.set)
+                
+                # 绑定鼠标滚轮事件
+                self.canvas.bind_all("<MouseWheel>", self._on_mousewheel)
+                
+                self.multi_block_frame = ttk.Frame(self.scrollable_frame)
+            else:
+                self.multi_block_frame = ttk.Frame(self.main_container)
             
             # 配置网格权重，使四个块均匀分布
             for i in range(2):
@@ -66,7 +97,7 @@ class MainWindow:
                 for col in range(2):
                     # 创建分隔框架
                     separator_frame = ttk.Frame(self.multi_block_frame, relief="ridge", borderwidth=2)
-                    separator_frame.grid(row=row, column=col, sticky="nsew", padx=5, pady=5)
+                    separator_frame.grid(row=row, column=col, sticky="nsew", padx=3, pady=3)
                     
                     # 配置分隔框架的网格
                     separator_frame.grid_rowconfigure(0, weight=1)
@@ -80,15 +111,34 @@ class MainWindow:
                     block_id += 1
         
         # 显示多块模式
-        self.multi_block_frame.pack(expand=True, fill="both", padx=10, pady=10)
+        if self.use_scrollbar:
+            self.multi_block_frame.pack(expand=True, fill="both", padx=5, pady=5)
+            self.canvas.pack(side="left", fill="both", expand=True, padx=5, pady=5)
+            self.scrollbar_v.pack(side="right", fill="y")
+            self.scrollbar_h.pack(side="bottom", fill="x")
+        else:
+            self.multi_block_frame.pack(expand=True, fill="both", padx=10, pady=10)
+        
         self.current_mode = "multi_block"
         self.update_status(language_manager.get('status_ready'))
+    
+    def _on_mousewheel(self, event):
+        """处理鼠标滚轮事件"""
+        if hasattr(self, 'canvas'):
+            self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
         
     def show_comparison_mode(self):
         """显示对比模式"""
         # 隐藏多块模式
         if self.multi_block_frame:
             self.multi_block_frame.pack_forget()
+            # 如果有滚动条，也隐藏它们
+            if hasattr(self, 'canvas'):
+                self.canvas.pack_forget()
+            if hasattr(self, 'scrollbar_v'):
+                self.scrollbar_v.pack_forget()
+            if hasattr(self, 'scrollbar_h'):
+                self.scrollbar_h.pack_forget()
         
         # 如果对比模式框架不存在，创建它
         if not self.comparison_frame:

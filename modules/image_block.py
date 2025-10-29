@@ -71,66 +71,92 @@ class ImageBlock(ttk.Frame):
         self.control_frame = ttk.LabelFrame(self, text=f"{language_manager.get('image_block')} {self.block_id} {language_manager.get('control_panel')}")
         self.control_frame.grid(row=0, column=0, sticky="ew", padx=5, pady=5)
         
+        # 创建单行布局 - 所有控件在一行
+        # 第一行：颜色、颜色空间、降采样率、点大小、上传、刷新按钮
+        row1_frame = ttk.Frame(self.control_frame)
+        row1_frame.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        
+        # 获取屏幕分辨率来动态计算按钮大小
+        root = self.winfo_toplevel()
+        screen_width = root.winfo_screenwidth()
+        
+        # 根据屏幕宽度计算按钮字体大小
+        if screen_width <= 1366:
+            button_font_size = 12
+            button_width = 2
+        elif screen_width <= 1920:
+            button_font_size = 14
+            button_width = 2
+        else:
+            button_font_size = 16
+            button_width = 3
+        
         # 颜色选择按钮（使用色块显示当前颜色）
         self.color_btn = tk.Button(
-            self.control_frame,
+            row1_frame,
             text="■",
             fg=self.plot_color,
-            font=("Arial", 16),
+            font=("Arial", button_font_size),
             bd=0,  # 去除边框
             relief="flat",  # 平坦样式
             command=self.choose_color,
-            width=2,
+            width=button_width,
             highlightthickness=0  # 去除高亮边框
         )
-        self.color_btn.grid(row=0, column=0, padx=5, pady=5)
+        self.color_btn.pack(side="left", padx=2)
         
         # 颜色空间选择
-        self.color_space_label = ttk.Label(self.control_frame, text=language_manager.get('color_space'))
-        self.color_space_label.grid(row=0, column=1, padx=5, pady=5)
+        self.color_space_label = ttk.Label(row1_frame, text=language_manager.get('color_space'))
+        self.color_space_label.pack(side="left", padx=2)
         self.color_space_var = tk.StringVar(value="rg_bg")
+        # 根据屏幕宽度动态设置组合框宽度
+        combo_width = 10 if screen_width <= 1366 else (12 if screen_width <= 1920 else 14)
+        
         self.color_space_combo = ttk.Combobox(
-            self.control_frame, 
+            row1_frame,
             textvariable=self.color_space_var,
             values=["rg_bg", "chromaticity"],
             state="readonly",
-            width=15
+            width=combo_width
         )
-        self.color_space_combo.grid(row=0, column=2, padx=5, pady=5)
+        self.color_space_combo.pack(side="left", padx=2)
         
         # 绑定颜色空间变化事件
         self.color_space_combo.bind('<<ComboboxSelected>>', self.on_color_space_change)
         
         # 自定义降采样率输入
-        self.sample_rate_label = ttk.Label(self.control_frame, text=language_manager.get('custom_sample_rate'))
-        self.sample_rate_label.grid(row=0, column=3, padx=5, pady=5)
-        self.sample_rate_var = tk.StringVar(value="10")
-        self.sample_rate_entry = ttk.Entry(self.control_frame, textvariable=self.sample_rate_var, width=8)
-        self.sample_rate_entry.grid(row=0, column=4, padx=5, pady=5)
+        # 根据屏幕宽度动态设置输入框宽度
+        entry_width = 5 if screen_width <= 1366 else (6 if screen_width <= 1920 else 8)
         
-        # 点大小控制
-        self.point_size_label = ttk.Label(self.control_frame, text=language_manager.get('point_size'))
-        self.point_size_label.grid(row=0, column=5, padx=5, pady=5)
+        self.sample_rate_label = ttk.Label(row1_frame, text=language_manager.get('custom_sample_rate'))
+        self.sample_rate_label.pack(side="left", padx=2)
+        self.sample_rate_var = tk.StringVar(value="10")
+        self.sample_rate_entry = ttk.Entry(row1_frame, textvariable=self.sample_rate_var, width=entry_width)
+        self.sample_rate_entry.pack(side="left", padx=2)
+        
+        # 点大小控制 - 放在同一行
+        self.point_size_label = ttk.Label(row1_frame, text=language_manager.get('point_size'))
+        self.point_size_label.pack(side="left", padx=2)
         self.point_size_var = tk.StringVar(value="1.0")
-        self.point_size_entry = ttk.Entry(self.control_frame, textvariable=self.point_size_var, width=8)
-        self.point_size_entry.grid(row=0, column=6, padx=5, pady=5)
+        self.point_size_entry = ttk.Entry(row1_frame, textvariable=self.point_size_var, width=entry_width)
+        self.point_size_entry.pack(side="left", padx=2)
         
         # 上传按钮
         self.upload_btn = ttk.Button(
-            self.control_frame,
+            row1_frame,
             text=language_manager.get('upload_image'),
             command=self.upload_image
         )
-        self.upload_btn.grid(row=0, column=7, padx=5, pady=5)
+        self.upload_btn.pack(side="left", padx=2)
         
         # 刷新按钮
         self.refresh_btn = ttk.Button(
-            self.control_frame,
+            row1_frame,
             text=language_manager.get('refresh_plot'),
             command=self.refresh_plot,
             state="disabled"
         )
-        self.refresh_btn.grid(row=0, column=8, padx=5, pady=5)
+        self.refresh_btn.pack(side="left", padx=2)
         
     def create_display_area(self):
         """创建图片和统计图显示区域"""
@@ -174,11 +200,29 @@ class ImageBlock(ttk.Frame):
         self.plot_frame = ttk.LabelFrame(display_frame, text=language_manager.get('color_distribution'))
         self.plot_frame.grid(row=0, column=1, sticky="nsew", padx=5, pady=5)
         
-        # 创建matplotlib图形
-        self.figure = Figure(figsize=(5, 4), dpi=100)
+        # 创建matplotlib图形 - 动态调整大小
+        # 获取屏幕DPI来适配不同分辨率
+        root = self.winfo_toplevel()
+        screen_width = root.winfo_screenwidth()
+        
+        # 根据屏幕宽度动态调整图形大小
+        if screen_width <= 1366:
+            fig_width = 4
+            fig_height = 3
+            dpi = 80
+        elif screen_width <= 1920:
+            fig_width = 5
+            fig_height = 4
+            dpi = 90
+        else:
+            fig_width = 6
+            fig_height = 4.5
+            dpi = 100
+            
+        self.figure = Figure(figsize=(fig_width, fig_height), dpi=dpi)
         # 调整子图参数以减少边距并确保x轴标签可见
         self.ax = self.figure.add_subplot(111)
-        self.figure.subplots_adjust(left=0.12, right=0.95, top=0.95, bottom=0.15)
+        self.figure.subplots_adjust(left=0.15, right=0.95, top=0.95, bottom=0.15)
         self.ax.set_xlabel('x')
         self.ax.set_ylabel('y')
         self.ax.grid(True, alpha=0.3)
@@ -192,60 +236,78 @@ class ImageBlock(ttk.Frame):
         self.axis_frame = ttk.LabelFrame(self, text=language_manager.get('axis_control'))
         self.axis_frame.grid(row=2, column=0, sticky="ew", padx=5, pady=5)
         
-        # X轴范围控制
-        self.x_axis_label = ttk.Label(self.axis_frame, text=language_manager.get('x_axis_range'))
-        self.x_axis_label.grid(row=0, column=0, padx=5, pady=5)
-        self.x_min_label = ttk.Label(self.axis_frame, text=language_manager.get('min_value'))
-        self.x_min_label.grid(row=0, column=1, padx=5, pady=5)
+        # 第一行：X轴和Y轴范围都在同一行
+        row1_frame = ttk.Frame(self.axis_frame)
+        row1_frame.grid(row=0, column=0, sticky="ew", padx=2, pady=2)
+        
+        # 获取屏幕分辨率来动态计算输入框宽度
+        root = self.winfo_toplevel()
+        screen_width = root.winfo_screenwidth()
+        axis_entry_width = 4 if screen_width <= 1366 else (5 if screen_width <= 1920 else 6)
+        
+        # X轴范围
+        self.x_axis_label = ttk.Label(row1_frame, text=language_manager.get('x_axis_range'))
+        self.x_axis_label.pack(side="left", padx=2)
+        
+        self.x_min_label = ttk.Label(row1_frame, text=language_manager.get('min_value'))
+        self.x_min_label.pack(side="left", padx=2)
         self.x_min_var = tk.StringVar(value="0")
-        x_min_entry = ttk.Entry(self.axis_frame, textvariable=self.x_min_var, width=5)
-        x_min_entry.grid(row=0, column=2, padx=5, pady=5)
+        x_min_entry = ttk.Entry(row1_frame, textvariable=self.x_min_var, width=axis_entry_width)
+        x_min_entry.pack(side="left", padx=2)
         
-        self.x_max_label = ttk.Label(self.axis_frame, text=language_manager.get('max_value'))
-        self.x_max_label.grid(row=0, column=3, padx=5, pady=5)
+        self.x_max_label = ttk.Label(row1_frame, text=language_manager.get('max_value'))
+        self.x_max_label.pack(side="left", padx=2)
         self.x_max_var = tk.StringVar(value="5")
-        x_max_entry = ttk.Entry(self.axis_frame, textvariable=self.x_max_var, width=5)
-        x_max_entry.grid(row=0, column=4, padx=5, pady=5)
+        x_max_entry = ttk.Entry(row1_frame, textvariable=self.x_max_var, width=axis_entry_width)
+        x_max_entry.pack(side="left", padx=2)
         
-        # Y轴范围控制
-        self.y_axis_label = ttk.Label(self.axis_frame, text=language_manager.get('y_axis_range'))
-        self.y_axis_label.grid(row=0, column=5, padx=5, pady=5)
-        self.y_min_label = ttk.Label(self.axis_frame, text=language_manager.get('min_value'))
-        self.y_min_label.grid(row=0, column=6, padx=5, pady=5)
+        # 分隔符
+        ttk.Separator(row1_frame, orient="vertical").pack(side="left", fill="y", padx=5)
+        
+        # Y轴范围 - 在同一行
+        self.y_axis_label = ttk.Label(row1_frame, text=language_manager.get('y_axis_range'))
+        self.y_axis_label.pack(side="left", padx=2)
+        
+        self.y_min_label = ttk.Label(row1_frame, text=language_manager.get('min_value'))
+        self.y_min_label.pack(side="left", padx=2)
         self.y_min_var = tk.StringVar(value="0")
-        y_min_entry = ttk.Entry(self.axis_frame, textvariable=self.y_min_var, width=5)
-        y_min_entry.grid(row=0, column=7, padx=5, pady=5)
+        y_min_entry = ttk.Entry(row1_frame, textvariable=self.y_min_var, width=axis_entry_width)
+        y_min_entry.pack(side="left", padx=2)
         
-        self.y_max_label = ttk.Label(self.axis_frame, text=language_manager.get('max_value'))
-        self.y_max_label.grid(row=0, column=8, padx=5, pady=5)
+        self.y_max_label = ttk.Label(row1_frame, text=language_manager.get('max_value'))
+        self.y_max_label.pack(side="left", padx=2)
         self.y_max_var = tk.StringVar(value="5")
-        y_max_entry = ttk.Entry(self.axis_frame, textvariable=self.y_max_var, width=5)
-        y_max_entry.grid(row=0, column=9, padx=5, pady=5)
+        y_max_entry = ttk.Entry(row1_frame, textvariable=self.y_max_var, width=axis_entry_width)
+        y_max_entry.pack(side="left", padx=2)
+        
+        # 第二行：按钮也在同一行
+        row2_frame = ttk.Frame(self.axis_frame)
+        row2_frame.grid(row=1, column=0, sticky="ew", padx=2, pady=2)
         
         # 应用按钮
         self.apply_btn = ttk.Button(
-            self.axis_frame,
+            row2_frame,
             text=language_manager.get('apply_range'),
             command=self.apply_axis_range
         )
-        self.apply_btn.grid(row=0, column=10, padx=5, pady=5)
+        self.apply_btn.pack(side="left", padx=2)
         
         # 重置按钮
         self.reset_btn = ttk.Button(
-            self.axis_frame,
+            row2_frame,
             text=language_manager.get('auto_range'),
             command=self.auto_axis_range
         )
-        self.reset_btn.grid(row=0, column=11, padx=5, pady=5)
+        self.reset_btn.pack(side="left", padx=2)
         
         # 保存图表按钮
         self.save_plot_btn = ttk.Button(
-            self.axis_frame,
+            row2_frame,
             text=language_manager.get('save_plot'),
             command=self.save_plot,
             state="disabled"
         )
-        self.save_plot_btn.grid(row=0, column=12, padx=5, pady=5)
+        self.save_plot_btn.pack(side="left", padx=2)
         
     def update_language(self):
         """更新界面语言"""
@@ -375,8 +437,17 @@ class ImageBlock(ttk.Frame):
             # 复制图像以避免修改原始数据
             display_image = original.copy()
             
-            # 调整大小以适应显示区域
-            display_size = (300, 300)
+            # 根据屏幕分辨率动态调整缩略图大小
+            root = self.winfo_toplevel()
+            screen_width = root.winfo_screenwidth()
+            
+            if screen_width <= 1366:
+                display_size = (200, 200)
+            elif screen_width <= 1920:
+                display_size = (250, 250)
+            else:
+                display_size = (300, 300)
+                
             display_image.thumbnail(display_size, Image.Resampling.LANCZOS)
             
             # 转换为PhotoImage
